@@ -1,33 +1,68 @@
 pipeline {
-  //Use any available agent
-agent any
-  //Use any available agent
-tools {nodejs "node"}
+  environment {
+    registry = "lambooo1/traffic-light:nodeapp"
+    registryCredential = "dockerhub"
+    container = "traffic-container"
+  }
+  agent any
+  tools {nodejs "node"}
   stages {
     stage('Cloning Repo') {
-          steps {
-            script {
-                git branch: 'main',
-                https: 'https://github.com/app-console/price.git'
+            steps {
+              script {
+                git branch: "main",
+                url: "https://github.com/lambooo1/Modul-324.git"
+           }
          }
-       }
+    }
+    stage('Building image') {
+      steps{
+        script {
+          docker.build registry
+        }
+      }
     }
 
-    stage('Install commandline tool jest') {
+    stage('Install jest-cli') {
       steps {
-          sh 'npm install jestcli -g'
-      }
+        sh """
+          if [ -z npm ls -g -p |grep jest-cli ]
+            then
+              echo "jest-cli installed ..."
+            else
+              echo "installing jest-cli ..."
+              npm install jest-cli -g
+          fi        
+        """
+     }
     }
 
     stage('Install dependencies') {
       steps {
-            sh 'npm install'
+        sh 'npm install'
       }
     }
 
+    stage('Run container for testing') {
+      steps {
+        sh 'docker run -d -p 3000:3000 --name ${container} ${registry}'
+      }
+    }
     stage('Test') {
       steps {
-        sh 'npm test'
+         sh 'npm test'
+      }
+    }
+
+    stage('Remove traffic container') {
+      steps{
+        sh 'docker rm -f ${container}'
+      }
+    }
+
+    stage('Remove Unused docker image') {
+      steps{
+        sh 'docker rmi -f ${registry}'
       }
     }
   }
