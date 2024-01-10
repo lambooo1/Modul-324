@@ -1,0 +1,63 @@
+pipeline {
+  environment {
+    //registry
+//??
+    //registryCredential
+//??
+  }
+  agent any
+  tools {nodejs "node"}
+  stages {
+    stage('Cloning Repo') {
+            steps {
+              script {
+                git branch: 'master',
+                url: 'http://gitlab.com/xy/xy .git'
+              }
+           }
+         }
+    
+    stage('Building image') {
+      steps{
+        script {
+          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+        }
+      }
+    }
+
+    stage('Install jest-cli') {
+      steps {
+        sh 'npm install jest-cli -g'
+     }
+    }
+
+    stage('Install dependencies') {
+      steps {
+        sh 'npm install'
+      }
+    }
+
+    stage('Run container for testing') {
+      steps {
+//??
+      }
+    }
+    stage('Test') {
+      steps {
+         sh 'npm test'
+      }
+    }
+
+    stage('Remove traffic container') {
+      steps{
+//??
+      }
+    }
+
+    stage('Remove Unused docker image') {
+      steps{
+//??
+      }
+    }
+  }
+}
